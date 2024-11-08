@@ -22,7 +22,7 @@ except LookupError:
     nltk.download('words')
 
 # Game version
-CURRENT_VERSION = "1.1.0"
+CURRENT_VERSION = "1.0.0"
 
 # Function to check for updates
 def check_for_update():
