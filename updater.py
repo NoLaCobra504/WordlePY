@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import requests
 import zipfile
@@ -93,16 +94,22 @@ def extract_update(zip_file):
         return None
 
 def replace_files(update_folder):
-    """Replace the old files with the updated ones."""
+    """Replace the old files with the updated ones, deleting only WordlePY-related files."""
     try:
         for item in os.listdir(update_folder):
             s = os.path.join(update_folder, item)
             d = os.path.join('.', item)
+            
+            # If it's a directory or file related to WordlePY, replace it
             if os.path.isdir(s):
-                shutil.rmtree(d, ignore_errors=True)
+                # Remove existing WordlePY directories
+                if os.path.exists(d):
+                    shutil.rmtree(d, ignore_errors=True)
                 shutil.copytree(s, d)
             else:
+                # If it's a file, copy it over (overwrite if necessary)
                 shutil.copy2(s, d)
+                
         return True
     except Exception as e:
         print(f"File replacement failed: {e}")
@@ -137,6 +144,29 @@ def main():
 
     # Download the update if the versions differ
     zip_file = download_update(latest_version)
+    directory_fd = os.getcwd()
+    files_fd = os.listdir(directory_fd)
+    version_pattern_fd = re.compile(r"^WordlePY_v(\d+)\.(\d+)\.(\d+)\.py$")
+    latest_version_fd = None
+    
+    for file in files_fd:
+        match = version_pattern_fd.match(file)
+    if match:
+        if not latest_version_fd or file > latest_version_fd:
+            latest_version_fd = file
+    
+    for file in files_fd:
+        if file != latest_version_fd and (version_pattern_fd.match(file) or file == "WordlePY.py"):
+            try:
+                os.remove(file)
+                print(f"Deleted: {file}")
+            except Exception as e:
+                print(f"Failed to delete {file}: {e}")
+    if latest_version_fd:
+        print(f"Kept the latest version: {latest_version_fd}")
+    else:
+        print("No versioned files found.")
+    
     
     if zip_file:
         update_folder = extract_update(zip_file)
