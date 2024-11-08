@@ -1,5 +1,4 @@
 import os
-import sys
 import requests
 import zipfile
 import shutil
@@ -9,22 +8,8 @@ import subprocess
 # Define the GitHub repository details
 GITHUB_REPO = 'https://github.com/NoLaCobra504/WordlePY/releases/download/'
 
-CURRENT_VERSION = "1.0.0"  # This should match the version in wordle_game.py
-
 # Path to the file where we store the current version
-VERSION_FILE = 'current_version.txt'
-
-def read_current_version():
-    """Read the current version from the version file."""
-    if os.path.exists(VERSION_FILE):
-        with open(VERSION_FILE, 'r') as file:
-            return file.read().strip()
-    return None
-
-def write_current_version(version):
-    """Write the current version to the version file."""
-    with open(VERSION_FILE, 'w') as file:
-        file.write(version)
+VERSION_FILE = 'latest_version.json'  # This is the URL of the latest_version.json file
 
 def check_for_update():
     """Check if a new update is available."""
@@ -32,11 +17,13 @@ def check_for_update():
         # Fetch the latest version from the repository
         response = requests.get('https://raw.githubusercontent.com/NoLaCobra504/WordlePY/main/latest_version.json')
         latest_version = response.json().get('version')
-
-        if latest_version > CURRENT_VERSION:
-            print(f"New version {latest_version} is available.")
-            return latest_version
-        return None
+        
+        # Compare the version from GitHub with the current state (assume we're always outdated)
+        print(f"Latest version on GitHub: {latest_version}")
+        
+        # You can use a hardcoded check or perform other checks here
+        # Here, we assume the app is always outdated (no `current_version.txt`)
+        return latest_version
     except Exception as e:
         print(f"Update check failed: {e}")
         return None
@@ -108,34 +95,26 @@ def restart_program():
 
 def main():
     # Check if the current version is up-to-date
-    current_version = read_current_version()
-
-    if current_version != CURRENT_VERSION:
-        # If not up-to-date, check for update and apply it
-        latest_version = check_for_update()
+    latest_version = check_for_update()
+    
+    if latest_version:
+        zip_file = download_update(latest_version)
         
-        if latest_version:
-            zip_file = download_update(latest_version)
+        if zip_file:
+            update_folder = extract_update(zip_file)
             
-            if zip_file:
-                update_folder = extract_update(zip_file)
-                
-                if update_folder:
-                    if replace_files(update_folder):
-                        print("Update successful. Restarting the application...")
-                        # Update the current version to the new version after the update
-                        write_current_version(latest_version)
-                        os.remove(zip_file)  # Clean up the downloaded ZIP file
-                        shutil.rmtree(update_folder)  # Clean up the extracted folder
-                        restart_program()  # Restart the program to run the updated version
-                    else:
-                        print("Failed to replace files.")
+            if update_folder:
+                if replace_files(update_folder):
+                    print("Update successful. Restarting the application...")
+                    os.remove(zip_file)  # Clean up the downloaded ZIP file
+                    shutil.rmtree(update_folder)  # Clean up the extracted folder
+                    restart_program()  # Restart the program to run the updated version
                 else:
-                    print("Failed to extract update files.")
+                    print("Failed to replace files.")
             else:
-                print("Failed to download update.")
+                print("Failed to extract update files.")
         else:
-            print("No updates available.")
+            print("Failed to download update.")
     else:
         print("The application is up to date.")
 
