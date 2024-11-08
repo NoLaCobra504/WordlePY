@@ -2,7 +2,7 @@ import os
 import requests
 import zipfile
 import shutil
-import json
+from tqdm import tqdm  # Import tqdm for the progress bar
 
 # Define the GitHub repository details
 GITHUB_REPO = 'https://raw.githubusercontent.com/yourusername/yourrepository/main/'
@@ -11,53 +11,39 @@ CURRENT_VERSION = "1.0.0"  # This should match the version in wordle_game.py
 
 def check_for_update():
     try:
-        # Make a GET request to fetch the latest version data
         response = requests.get(GITHUB_REPO + 'latest_version.json')
-
-        # Log the raw response for debugging purposes
-        print(f"Raw response from server: {response.text[:200]}")  # Limit log output for brevity
-
-        # Check if the response contains JSON
-        if 'application/json' in response.headers.get('Content-Type', ''):
-            try:
-                response_data = response.json()
-            except json.JSONDecodeError as e:
-                print(f"Failed to decode JSON response: {e}")
-                return None
-        else:
-            print(f"Expected JSON, but got: {response.headers.get('Content-Type')}")
-            print(f"Response text: {response.text[:200]}")  # Show first 200 chars of response for debugging
-            return None
-
-        # Check if 'version' exists in the JSON response
-        latest_version = response_data.get('version')
-
-        if not latest_version:
-            print("No version information found in the response.")
-            return None
-
-        # Assuming version is in 'major.minor.patch' format, compare numerically
-        current_version_parts = [int(part) for part in CURRENT_VERSION.split('.')]
-        latest_version_parts = [int(part) for part in latest_version.split('.')]
-
-        if latest_version_parts > current_version_parts:
+        latest_version = response.json().get('version')
+        
+        if latest_version > CURRENT_VERSION:
             return latest_version
         return None
-
-    except requests.RequestException as e:
-        # Handle network-related errors or issues with the GET request
+    except Exception as e:
         print(f"Update check failed: {e}")
         return None
 
 def download_update(latest_version):
     try:
         url = f'{GITHUB_REPO}updates/your_app_{latest_version}.zip'
-        response = requests.get(url, allow_redirects=True)
+        response = requests.get(url, stream=True, allow_redirects=True)  # Use stream=True for large files
         
-        with open(f'update_{latest_version}.zip', 'wb') as file:
-            file.write(response.content)
+        # Get the total file size for the progress bar
+        total_size = int(response.headers.get('content-length', 0))
         
-        return f'update_{latest_version}.zip'
+        # Open the file to write the content
+        zip_filename = f'update_{latest_version}.zip'
+        with open(zip_filename, 'wb') as file, tqdm(
+            desc="Downloading update",
+            total=total_size,
+            unit='B',
+            unit_scale=True
+        ) as bar:
+            # Write the content in chunks and update the progress bar
+            for chunk in response.iter_content(chunk_size=1024):
+                if chunk:
+                    file.write(chunk)
+                    bar.update(len(chunk))  # Update progress bar with chunk size
+        
+        return zip_filename
     except Exception as e:
         print(f"Download failed: {e}")
         return None
@@ -112,3 +98,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
