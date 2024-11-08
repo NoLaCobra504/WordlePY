@@ -1,3 +1,5 @@
+import os
+import subprocess
 import tkinter as tk
 from tkinter import messagebox
 import hashlib
@@ -19,6 +21,15 @@ except LookupError:
         ssl._create_default_https_context = ssl._create_unverified_context
     nltk.download('words')
 
+# Game version
+CURRENT_VERSION = "1.0.0"
+
+# Function to check for updates
+def check_for_update():
+    # Run the updater script
+    subprocess.Popen(['python', 'updater.py'], close_fds=True)
+    exit()  # Exit the current application
+
 valid_words = {word.upper() for word in words.words() if len(word) == 5}
 target_word = random.choice(list(valid_words))
 
@@ -26,13 +37,15 @@ class WordleGame:
     def __init__(self, root):
         self.root = root
         self.root.title("Wordle Game")
+        
+        # Start the update check
+        check_for_update()
+
         self.attempts = 6
         self.current_attempt = 0
         self.guesses = []
-
-        # Show start menu
         self.show_start_menu()
-    
+
     def show_start_menu(self):
         """Display the start menu to choose options like New Game or Upload."""
         self.start_menu = tk.Toplevel(self.root)
@@ -188,9 +201,7 @@ class WordleGame:
         # Notify the user that the game has been saved
         messagebox.showinfo("Game Saved", f"Game saved! The hash has been written to {filename}")
 
-
-# Start the game
-if __name__ == "__main__":
-    root = tk.Tk()
-    game = WordleGame(root)
-    root.mainloop()
+# Tkinter root initialization
+root = tk.Tk()
+game = WordleGame(root)
+root.mainloop()
