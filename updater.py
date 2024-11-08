@@ -88,17 +88,18 @@ def replace_files(update_folder):
 def delete_old_files(update_folder):
     """Remove the old files (previous version) after the update is done."""
     try:
-        # Get the list of files that were replaced by the update
+        # Get a set of the files from the update folder
         update_files = set(os.listdir(update_folder))  # Files in the update folder
 
         # Loop through the current directory and delete files/folders that were replaced
         for item in os.listdir('.'):
+            item_path = os.path.join('.', item)
             if item not in update_files and item != 'update_folder' and item != f'WordlePY_{get_current_version()}.zip':
-                item_path = os.path.join('.', item)
+                # Delete the old file or folder
                 if os.path.isdir(item_path):
-                    shutil.rmtree(item_path, ignore_errors=True)  # Delete old directories
+                    shutil.rmtree(item_path, ignore_errors=True)
                 else:
-                    os.remove(item_path)  # Delete old files
+                    os.remove(item_path)
         print("Old files removed successfully.")
         return True
     except Exception as e:
