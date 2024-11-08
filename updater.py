@@ -94,6 +94,7 @@ def delete_old_files(update_folder):
         # Loop through the current directory and delete files/folders that were replaced
         for item in os.listdir('.'):
             item_path = os.path.join('.', item)
+            # Only delete the files/folders that are not in the update folder
             if item not in update_files and item != 'update_folder' and item != f'WordlePY_{get_current_version()}.zip':
                 # Delete the old file or folder
                 if os.path.isdir(item_path):
