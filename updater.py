@@ -11,13 +11,13 @@ CURRENT_VERSION = "1.0.0"  # This should match the version in wordle_game.py
 
 def check_for_update():
     try:
-        # Fetch latest version info from the repository
+        # Fetch the latest version information from the repository
         response = requests.get(GITHUB_REPO + 'latest_version.json')
-        print("Response JSON:", response.text)  # For debugging
+        print("Response JSON:", response.text)  # Debugging line to check the fetched JSON
         latest_version = response.json().get('version')
         
         if latest_version > CURRENT_VERSION:
-            print(f"New version {latest_version} is available.")
+            print(f"New version {latest_version} is available.")  # Debugging line to confirm version comparison
             return latest_version
         return None
     except Exception as e:
@@ -26,9 +26,9 @@ def check_for_update():
 
 def download_update(latest_version):
     try:
-        # Fetch the update ZIP file from the 'updates' folder in your repository
-        zip_url = f'{GITHUB_REPO}updates/WordlePY_{latest_version}.zip'
-        print(f"Downloading update from: {zip_url}")  # For debugging
+        # Correct URL format for GitHub raw files
+        zip_url = f'https://github.com/NoLaCobra504/WordlePY/raw/main/updates/WordlePY_{latest_version}.zip'
+        print(f"Downloading update from: {zip_url}")  # Debugging line to check URL
         response = requests.get(zip_url, stream=True, allow_redirects=True)
         
         # Check if download was successful
@@ -40,6 +40,7 @@ def download_update(latest_version):
         zip_filename = f'WordlePY_{latest_version}.zip'
         total_size = int(response.headers.get('content-length', 0))
         
+        # Download the file with progress bar
         with open(zip_filename, 'wb') as file, tqdm(
             desc="Downloading update",
             total=total_size,
@@ -58,7 +59,7 @@ def download_update(latest_version):
 
 def extract_update(zip_file):
     try:
-        print(f"Extracting {zip_file}...")
+        print(f"Extracting {zip_file}...")  # Debugging line to check extraction
         # Extract the ZIP file
         with zipfile.ZipFile(zip_file, 'r') as zip_ref:
             zip_ref.extractall('update_folder')
@@ -69,7 +70,7 @@ def extract_update(zip_file):
 
 def replace_files(update_folder):
     try:
-        # Replace old files with the new ones
+        # Replace old files with the new ones from the extracted folder
         for item in os.listdir(update_folder):
             s = os.path.join(update_folder, item)
             d = os.path.join('.', item)
