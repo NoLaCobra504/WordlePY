@@ -71,6 +71,7 @@ def extract_update(zip_file):
 def replace_files(update_folder):
     """Replace the old files with the updated ones."""
     try:
+        # Replace all files from the update folder to the current directory
         for item in os.listdir(update_folder):
             s = os.path.join(update_folder, item)
             d = os.path.join('.', item)
@@ -87,18 +88,27 @@ def replace_files(update_folder):
 def delete_old_files(update_folder):
     """Remove the old files (previous version) after the update is done."""
     try:
-        # Delete the previous files (not the update folder itself)
+        # Get the list of files that were replaced by the update
+        update_files = set(os.listdir(update_folder))  # Files in the update folder
+
+        # Loop through the current directory and delete files/folders that were replaced
         for item in os.listdir('.'):
-            if item != 'update_folder' and os.path.isdir(item):
-                shutil.rmtree(item, ignore_errors=True)
-            elif item != 'update_folder' and os.path.isfile(item):
-                os.remove(item)
-        
+            if item not in update_files and item != 'update_folder' and item != f'WordlePY_{get_current_version()}.zip':
+                item_path = os.path.join('.', item)
+                if os.path.isdir(item_path):
+                    shutil.rmtree(item_path, ignore_errors=True)  # Delete old directories
+                else:
+                    os.remove(item_path)  # Delete old files
         print("Old files removed successfully.")
         return True
     except Exception as e:
         print(f"Error while removing old files: {e}")
         return False
+
+def get_current_version():
+    """Get the current version of the app (from a file or hardcoded)."""
+    # This can be a hardcoded version or you can read from a version file (e.g., current_version.txt)
+    return "1.0.0"  # Change this to the actual version if you have it saved elsewhere
 
 def restart_program():
     """Restart the application after updating."""
