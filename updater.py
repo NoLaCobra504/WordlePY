@@ -7,7 +7,7 @@ from tqdm import tqdm  # Import tqdm for the progress bar
 # Define the GitHub repository details
 GITHUB_REPO = 'https://raw.githubusercontent.com/yourusername/yourrepository/main/'
 
-CURRENT_VERSION = "1.0.0"  # This should match the version in wordle_game.py
+CURRENT_VERSION = "1.1.0"  # This should match the version in wordle_game.py
 
 def check_for_update():
     try:
