@@ -2,14 +2,12 @@ import os
 import requests
 import zipfile
 import shutil
+import sys  # Import sys to handle program restart
 from tqdm import tqdm
 import subprocess
 
 # Define the GitHub repository details
 GITHUB_REPO = 'https://github.com/NoLaCobra504/WordlePY/releases/download/'
-
-# Path to the file where we store the current version
-VERSION_FILE = 'latest_version.json'  # This is the URL of the latest_version.json file
 
 def check_for_update():
     """Check if a new update is available."""
@@ -86,6 +84,22 @@ def replace_files(update_folder):
         print(f"File replacement failed: {e}")
         return False
 
+def delete_old_files(update_folder):
+    """Remove the old files (previous version) after the update is done."""
+    try:
+        # Delete the previous files (not the update folder itself)
+        for item in os.listdir('.'):
+            if item != 'update_folder' and os.path.isdir(item):
+                shutil.rmtree(item, ignore_errors=True)
+            elif item != 'update_folder' and os.path.isfile(item):
+                os.remove(item)
+        
+        print("Old files removed successfully.")
+        return True
+    except Exception as e:
+        print(f"Error while removing old files: {e}")
+        return False
+
 def restart_program():
     """Restart the application after updating."""
     print("Restarting the application with the updated version...")
@@ -105,10 +119,14 @@ def main():
             
             if update_folder:
                 if replace_files(update_folder):
-                    print("Update successful. Restarting the application...")
-                    os.remove(zip_file)  # Clean up the downloaded ZIP file
-                    shutil.rmtree(update_folder)  # Clean up the extracted folder
-                    restart_program()  # Restart the program to run the updated version
+                    # Remove old files once the update is successful
+                    if delete_old_files(update_folder):
+                        print("Update successful. Restarting the application...")
+                        os.remove(zip_file)  # Clean up the downloaded ZIP file
+                        shutil.rmtree(update_folder)  # Clean up the extracted folder
+                        restart_program()  # Restart the program to run the updated version
+                    else:
+                        print("Failed to remove old files.")
                 else:
                     print("Failed to replace files.")
             else:
