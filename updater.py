@@ -120,9 +120,16 @@ def restart_program():
     print("Restarting the application with the updated version...")
     
     # Ensure that we spawn a new process for the updated version
-    python = sys.executable
-    subprocess.Popen([python] + sys.argv)  # Restart the program
+    python_executable = sys.executable  # This will give the full path to the Python executable
+    subprocess.Popen([python_executable] + sys.argv)  # Restart the program
     sys.exit()  # Exit the current process
+
+def check_for_update():
+    """Check for updates and run the updater script."""
+    try:
+        subprocess.Popen(['python3', 'updater.py'], close_fds=True)  # Use python3
+    except Exception as e:
+        print(f"Error while checking for updates: {e}")
 
 def main():
     # Get the latest release version from GitHub
@@ -151,9 +158,9 @@ def main():
     
     for file in files_fd:
         match = version_pattern_fd.match(file)
-    if match:
-        if not latest_version_fd or file > latest_version_fd:
-            latest_version_fd = file
+        if match:
+            if not latest_version_fd or file > latest_version_fd:
+                latest_version_fd = file
     
     for file in files_fd:
         if file != latest_version_fd and (version_pattern_fd.match(file) or file == "WordlePY.py"):
@@ -166,7 +173,6 @@ def main():
         print(f"Kept the latest version: {latest_version_fd}")
     else:
         print("No versioned files found.")
-    
     
     if zip_file:
         update_folder = extract_update(zip_file)
