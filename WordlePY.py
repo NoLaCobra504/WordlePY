@@ -27,7 +27,7 @@ CURRENT_VERSION = "1.0.0"
 # Function to check for updates
 def check_for_update():
     # Run the updater script
-    subprocess.Popen(['python', 'updater.py'], close_fds=True)
+    subprocess.Popen(['python3', 'updater.py'], close_fds=True)
     exit()  # Exit the current application
 
 valid_words = {word.upper() for word in words.words() if len(word) == 5}
